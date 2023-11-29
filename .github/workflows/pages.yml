@@ -17,5 +17,5 @@ jobs:
         ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         TARGET_REPO: Gabukuro/insta-gift-app
         TARGET_BRANCH: gh_pages
-        BUILD_SCRIPT: npm i && npm build
+        BUILD_SCRIPT: yarn && yarn build
         BUILD_DIR: blog/.vuepress/dist/
