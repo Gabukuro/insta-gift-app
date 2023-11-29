@@ -48,7 +48,7 @@ export default {
       this.loading = true;
       this.submitted = true;
 
-      axios.post(`http://localhost:8000/prediction/${this.instagramUsername}`)
+      axios.post(`${process.env.VUE_APP_BASE_URL}/prediction/${this.instagramUsername}`)
         .then(response => {
           this.prediction = response.data.prediction;
           this.status = this.prediction.status;
@@ -67,7 +67,7 @@ export default {
     },
     checkStatus() {
       const intervalId = setInterval(() => {
-        axios.get(`http://localhost:8000/prediction/${this.instagramUsername}`)
+        axios.get(`${process.env.VUE_APP_BASE_URL}/prediction/${this.instagramUsername}`)
           .then(response => {
             this.status = response.data.prediction.status;
             this.prediction = response.data.prediction;
