@@ -18,4 +18,4 @@ jobs:
         TARGET_REPO: Gabukuro/insta-gift-app
         TARGET_BRANCH: gh_pages
         BUILD_SCRIPT: yarn && yarn build
-        BUILD_DIR: blog/.vuepress/dist/
+        BUILD_DIR: /dist/
