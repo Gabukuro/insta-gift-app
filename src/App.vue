@@ -71,12 +71,10 @@ export default {
           if (this.status === 'completed') {
             localStorage.removeItem('pendingData');
             window.removeEventListener('beforeunload', this.beforeUnloadHandler);
-            this.resumingOperation = false;
-            this.loading = false;
+            this.resetFormState();
           } else if (this.status === 'failed') {
-            this.resumingOperation = false;
             localStorage.removeItem('pendingData');
-            this.loading = false;
+            this.resetFormState();
             alert('A previsão falhou. Por favor, revise seus dados e tente novamente.');
           } else {
             this.checkStatus();
@@ -84,9 +82,9 @@ export default {
         })
         .catch(error => {
           console.error('Erro no envio:', error);
-          this.loading = false;
           window.removeEventListener('beforeunload', this.beforeUnloadHandler);
           localStorage.removeItem('pendingData');
+          this.resetFormState();
         });
     },
     checkStatus() {
@@ -99,23 +97,25 @@ export default {
             if (this.status === 'completed') {
               clearInterval(intervalId);
               localStorage.removeItem('pendingData');
-              this.resumingOperation = false;
-              this.loading = false;
+          this.resetFormState();
             } else if (this.status === 'failed') {
               localStorage.removeItem('pendingData');
               alert('A previsão falhou. Por favor, revise seus dados e tente novamente.');
-              this.resumingOperation = false;
-              this.loading = false;
+              this.resetFormState();
             }
           })
           .catch(error => {
             console.error('Erro ao verificar o status:', error);
             localStorage.removeItem('pendingData');
             clearInterval(intervalId);
-            this.resumingOperation = false;
-            this.loading = false;
+            this.resetFormState();
           });
       }, 15000);
+    },
+    resetFormState() {
+      this.hasPendingPrediction = false;
+      this.resumingOperation = false;
+      this.loading = false;
     },
     checkPendingPrediction() {
       const pendingData = localStorage.getItem('pendingData');
