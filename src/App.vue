@@ -15,7 +15,8 @@
     </form>
 
     <div v-else>
-      <p>Você tem uma operação pendente. Deseja retomar?</p>
+      <p v-if="status === 'failed'">A previsão falhou. Por favor, revise seus dados e tente novamente.</p>
+      <p v-else>Você tem uma operação pendente. Deseja retomar?</p>
       <button @click="resumePrediction">Retomar Operação</button>
     </div>
 
@@ -64,13 +65,14 @@ export default {
         .then(response => {
           this.prediction = response.data.prediction;
           this.status = this.prediction.status;
-          console.log(this.prediction);
 
           if (this.status === 'completed') {
             this.loading = false;
             window.removeEventListener('beforeunload', this.beforeUnloadHandler);
             localStorage.removeItem('pendingData');
-
+          } else if (this.status === 'failed') {
+            this.loading = false;
+            alert('A previsão falhou. Por favor, revise seus dados e tente novamente.');
           } else {
             this.checkStatus();
           }
