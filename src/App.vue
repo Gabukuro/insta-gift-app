@@ -10,14 +10,15 @@
         required
       />
       <button type="submit" :disabled="loading || status === 'processing'">
-        {{ loading ? 'Enviando...' : (status === 'processing' ? 'Processando...' : 'Enviar') }}
+        {{ loading && status === 'pending' ? 'Enviando...' : (status === 'processing' ? 'Processando...' : 'Enviar') }}
       </button>
     </form>
 
     <div v-else>
+      <p v-if="resumingOperation">Retomando operação...</p>
       <p v-if="status === 'failed'">A previsão falhou. Por favor, revise seus dados e tente novamente.</p>
       <p v-else>Você tem uma operação pendente. Deseja retomar?</p>
-      <button @click="resumePrediction">Retomar Operação</button>
+      <button @click="resumePrediction" :disabled="resumingOperation">{{ loading && status === 'pending' ? 'Enviando...' : (status === 'processing' ? 'Processando...' : 'Enviar') }}</button>
     </div>
 
     <div v-if="submitted && status === 'completed' && !loading">
@@ -47,7 +48,8 @@ export default {
       loading: false,
       status: 'pending',
       prediction: null,
-      hasPendingPrediction: false
+      hasPendingPrediction: false,
+      resumingOperation: false
     };
   },
   mounted() {
@@ -67,10 +69,11 @@ export default {
           this.status = this.prediction.status;
 
           if (this.status === 'completed') {
-            this.loading = false;
-            window.removeEventListener('beforeunload', this.beforeUnloadHandler);
             localStorage.removeItem('pendingData');
+            window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+            this.loading = false;
           } else if (this.status === 'failed') {
+            localStorage.removeItem('pendingData');
             this.loading = false;
             alert('A previsão falhou. Por favor, revise seus dados e tente novamente.');
           } else {
@@ -93,11 +96,17 @@ export default {
 
             if (this.status === 'completed') {
               clearInterval(intervalId);
+              localStorage.removeItem('pendingData');
+              this.loading = false;
+            } else if (this.status === 'failed') {
+              localStorage.removeItem('pendingData');
+              alert('A previsão falhou. Por favor, revise seus dados e tente novamente.');
               this.loading = false;
             }
           })
           .catch(error => {
             console.error('Erro ao verificar o status:', error);
+            localStorage.removeItem('pendingData');
             clearInterval(intervalId);
             this.loading = false;
           });
@@ -110,6 +119,7 @@ export default {
       }
     },
     resumePrediction() {
+      this.resumingOperation = true;
       const pendingData = JSON.parse(localStorage.getItem('pendingData'));
       if (pendingData) {
         this.instagramUsername = pendingData.instagramUsername;
