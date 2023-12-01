@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <form @submit.prevent="submitForm">
+    <form @submit.prevent="submitForm" v-if="!hasPendingPrediction">
       <label for="instagramUsername">Username do Instagram:</label>
       <input
         type="text"
@@ -9,10 +9,15 @@
         placeholder="Insira o username do Instagram"
         required
       />
-      <button type="submit" :disabled="loading">
-        {{ loading ? 'Enviando...' : 'Enviar' }}
+      <button type="submit" :disabled="loading || status === 'processing'">
+        {{ loading ? 'Enviando...' : (status === 'processing' ? 'Processando...' : 'Enviar') }}
       </button>
     </form>
+
+    <div v-else>
+      <p>Você tem uma operação pendente. Deseja retomar?</p>
+      <button @click="resumePrediction">Retomar Operação</button>
+    </div>
 
     <div v-if="submitted && status === 'completed' && !loading">
       <p>Username do Instagram enviado: {{ instagramUsername }}</p>
@@ -41,10 +46,17 @@ export default {
       loading: false,
       status: 'pending',
       prediction: null,
+      hasPendingPrediction: false
     };
+  },
+  mounted() {
+    this.checkPendingPrediction();
   },
   methods: {
     submitForm() {
+      localStorage.setItem('pendingData', JSON.stringify({ instagramUsername: this.instagramUsername }));
+      window.addEventListener('beforeunload', this.beforeUnloadHandler);
+
       this.loading = true;
       this.submitted = true;
 
@@ -56,6 +68,9 @@ export default {
 
           if (this.status === 'completed') {
             this.loading = false;
+            window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+            localStorage.removeItem('pendingData');
+
           } else {
             this.checkStatus();
           }
@@ -63,6 +78,8 @@ export default {
         .catch(error => {
           console.error('Erro no envio:', error);
           this.loading = false;
+          window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+          localStorage.removeItem('pendingData');
         });
     },
     checkStatus() {
@@ -83,6 +100,24 @@ export default {
             this.loading = false;
           });
       }, 15000);
+    },
+    checkPendingPrediction() {
+      const pendingData = localStorage.getItem('pendingData');
+      if (pendingData) {
+        this.hasPendingPrediction = true;
+      }
+    },
+    resumePrediction() {
+      const pendingData = JSON.parse(localStorage.getItem('pendingData'));
+      if (pendingData) {
+        this.instagramUsername = pendingData.instagramUsername;
+        this.submitForm();
+      }
+    },
+    beforeUnloadHandler(event) {
+      const confirmationMessage = 'Você tem certeza que deseja sair? Se você sair agora, os dados não processados podem ser perdidos.';
+      event.returnValue = confirmationMessage;
+      return confirmationMessage;
     },
   },
 };
