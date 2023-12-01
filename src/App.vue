@@ -71,8 +71,10 @@ export default {
           if (this.status === 'completed') {
             localStorage.removeItem('pendingData');
             window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+            this.resumingOperation = false;
             this.loading = false;
           } else if (this.status === 'failed') {
+            this.resumingOperation = false;
             localStorage.removeItem('pendingData');
             this.loading = false;
             alert('A previsão falhou. Por favor, revise seus dados e tente novamente.');
@@ -97,10 +99,12 @@ export default {
             if (this.status === 'completed') {
               clearInterval(intervalId);
               localStorage.removeItem('pendingData');
+              this.resumingOperation = false;
               this.loading = false;
             } else if (this.status === 'failed') {
               localStorage.removeItem('pendingData');
               alert('A previsão falhou. Por favor, revise seus dados e tente novamente.');
+              this.resumingOperation = false;
               this.loading = false;
             }
           })
@@ -108,6 +112,7 @@ export default {
             console.error('Erro ao verificar o status:', error);
             localStorage.removeItem('pendingData');
             clearInterval(intervalId);
+            this.resumingOperation = false;
             this.loading = false;
           });
       }, 15000);
