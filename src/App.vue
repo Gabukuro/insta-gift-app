@@ -16,9 +16,9 @@
 
     <div v-else>
       <p v-if="resumingOperation">Retomando operação...</p>
-      <p v-if="status === 'failed'">A previsão falhou. Por favor, revise seus dados e tente novamente.</p>
+      <p v-else-if="status === 'failed'">A previsão falhou. Por favor, revise seus dados e tente novamente.</p>
       <p v-else>Você tem uma operação pendente. Deseja retomar?</p>
-      <button @click="resumePrediction" :disabled="resumingOperation">{{ loading && status === 'pending' ? 'Enviando...' : (status === 'processing' ? 'Processando...' : 'Enviar') }}</button>
+      <button @click="resumePrediction" :disabled="resumingOperation">{{ loading && status === 'pending' ? 'Enviando...' : (status === 'processing' ? 'Processando...' : 'Retomar Operação') }}</button>
     </div>
 
     <div v-if="submitted && status === 'completed' && !loading">
